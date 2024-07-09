@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Function to convert bytes to a human-readable format
+human_readable_size() {
+    local size=$1
+    local units=("B" "KB" "MB" "GB" "TB")
+    local unit=0
+
+    while ((size > 1024 && unit < ${#units[@]} - 1)); do
+        size=$((size / 1024))
+        ((unit++))
+    done
+
+    echo "$size ${units[$unit]}"
+}
+
+
+calc=$1
+if [ ! $1 ] ;then
+ echo "Size required"
+ exit 1
+fi
+    size_hr=$(human_readable_size "$calc")
+
+    echo "$calc = $size_hr"
+
