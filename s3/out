@@ -1,0 +1,2 @@
+
+In function sum(), invalid type for value: None, expected one of: ['array-number'], received: "null"
