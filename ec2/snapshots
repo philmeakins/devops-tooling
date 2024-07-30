@@ -1,0 +1,20 @@
+#!/bin/bash
+# Create snaphots for all EC2 instances - move region to last 
+AWS_REGION="eu-west-1"
+AWS_REGION="eu-west-2"
+AWS_REGION="us-east-1"
+
+for INSTANCE in $(aws --region ${AWS_REGION} ec2 describe-instances |jq -r '.[][]|.Instances[].InstanceId')
+do
+
+aws  --region ${AWS_REGION} ec2 describe-instances --instance-ids ${INSTANCE} > /tmp/${INSTANCE}
+echo ${INSTANCE}
+
+NAME=$(aws  --region ${AWS_REGION} ec2 describe-instances --instance-ids ${INSTANCE}  --query 'Reservations[*].Instances[*].Tags[?Key == `Name`].Value' |jq -r '.[][][]')
+VOL=$(cat /tmp/${INSTANCE} |jq -r '.[][]|.Instances[].BlockDeviceMappings[].Ebs.VolumeId')
+
+TAGS="{Key=Name,Value=${NAME}},{Key=Date,Value=$(date)}"
+aws  --region ${AWS_REGION} ec2 create-snapshot --description "${NAME}"  --volume-id ${VOL} --tag-specifications "ResourceType=snapshot,Tags=[${TAGS}]"
+
+echo " "
+done

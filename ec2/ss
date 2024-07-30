@@ -1,0 +1,15 @@
+#!/bin/bash
+# Cut down to single snapshot Ec2 volume
+
+INSTANCE=$1
+
+aws ec2 describe-instances --instance-ids ${INSTANCE} > /tmp/${INSTANCE}
+echo ${INSTANCE}
+
+NAME=$(aws ec2 describe-instances --instance-ids ${INSTANCE}  --query 'Reservations[*].Instances[*].Tags[?Key == `Name`].Value' |jq -r '.[][][]')
+VOL=$(cat /tmp/${INSTANCE} |jq -r '.[][]|.Instances[].BlockDeviceMappings[].Ebs.VolumeId')
+
+TAGS="{Key=Name,Value=${NAME}},{Key=Date,Value=$(date)}"
+aws ec2 create-snapshot --description "${NAME}"  --volume-id ${VOL} --tag-specifications "ResourceType=snapshot,Tags=[${TAGS}]"
+
+echo " "
